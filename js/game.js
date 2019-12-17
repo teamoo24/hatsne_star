@@ -26,6 +26,9 @@ window.onload = function(){
 	const cvs = document.getElementById("mycanvas")
 	const ctx = cvs.getContext("2d");
 
+	// game vars and conts
+	let frames = 0;
+
 	//Load sprite image
 	const sprite = new Image();
 	sprite.src = "./img/sprite.png"
@@ -33,6 +36,15 @@ window.onload = function(){
 	//Load Hatsne image
 	const hatsne = new Image();
 	hatsne.src = "./img/hatsne.png"
+
+	//Load Star image
+	const star_sprite = new Image();
+	star_sprite.src = "./img/star.png"
+
+	//bgm_play
+	const BGM = new Audio();
+	BGM.src = "./audio/bgm/bgm.mp3"
+	BGM.loop = true;
 
 	// GAME STATE
 	const state = {
@@ -83,6 +95,76 @@ window.onload = function(){
 		}
 	}
 
+	const star = {
+		position : [],
+		animation : [
+		{sX:0, sY:0},
+		{sX:32, sY:0},
+		{sX:65, sY:0},
+		{sX:97, sY:0},
+		],
+		w:24,
+		h:24,
+		dy:2,
+
+		draw: function(){
+
+			let period = Math.ceil(frames/10)
+			let star = this.animation[period%4]
+
+					
+
+			for(let i = 0; i < this.position.length; i++) {
+				let p = this.position[i];
+
+				ctx.drawImage(star_sprite, star.sX, star.sY, this.w, this.h, p.x, p.y, this.w, this.h);
+			
+			}
+		},
+		update: function(){
+			if(state.current !== state.game) {
+				return;
+			}
+
+			if(frames%100 == 0) {
+				this.position.push({
+					x : Math.random()*(cvs.width - this.w),
+					y : 0
+				})
+			}
+
+			for(let i = 0; i <this.position.length; i++) {
+				let p = this.position[i];
+
+				console.log("player.x < p.x : " + (player.x < p.x))
+				console.log("player.x + player.w > p.x : " + (player.x + player.w > p.x))
+
+				if(
+					// 左
+					player.x - player.w/2< p.x 
+					// 右
+					&& player.x + player.w/3 > p.x
+					// 上
+					&& cvs.height - fg.h > p.y 
+					// 下
+					&& cvs.height - fg.h - player.h - this.h/2 < p.y ) {
+					state.current = state.over;
+				}
+
+				
+				p.y += this.dy;
+
+				// if the pipes go beyond canvas, we delete them from canvas
+				if(p.y >= cvs.height - fg.h) {
+					this.position.shift();
+					score.value +=1;
+				}
+			}
+		}
+
+
+	}
+
 	const player = {
 		animation : [
 			{sX: 0, sY: 0}, //this.animation[0]
@@ -112,7 +194,6 @@ window.onload = function(){
 			} else if(x < this.oldx) {
 				this.frame = 1;
 			}
-			console.log(this.x)
 			this.oldx =x
 			this.x = x
 		},
@@ -121,7 +202,33 @@ window.onload = function(){
 				this.y = 150
 			} else {}
 		}
+	}
 
+	//SCORE
+	const score = {
+		value : 0,
+
+		draw : function() {
+			ctx.fillStyle = "#fff";
+			ctx.strokeStyle = "#000";
+
+
+			if(state.current == state.game) {
+				ctx.lineWidth = 2;
+				ctx.font = "35px Teko";
+				ctx.fillText(this.value, cvs.width/2, 50);
+				ctx.strokeText(this.value, cvs.width/2, 50);
+
+			} else if(state.current == state.over){
+				// SCORE VALUE
+				ctx.font = "25px Teko"
+				ctx.fillText(this.value, 225, 186);
+				ctx.strokeText(this.value, 225, 186);
+				// BEST VALUE
+				ctx.fillText(this.best, 225, 228);
+				ctx.strokeText(this.best, 225, 228);
+			}
+		} 
 	}
 
 	const getReady = {
@@ -154,6 +261,20 @@ window.onload = function(){
 		}
 	}
 
+	function sound_control() {
+		switch(state.current) {
+			case state.getReady:
+				BGM.load();
+				break;
+			case state.game:
+				BGM.play();
+				break;
+			case state.over:
+				BGM.pause();
+				break;
+		}
+	}
+
 	// draw
 	function draw() {
 		ctx.fillStyle = "#fff";
@@ -161,12 +282,15 @@ window.onload = function(){
 
 		fg.draw()
 		player.draw()
+		star.draw()
 		getReady.draw()
 		gameOver.draw()
+		score.draw()
 	}
 	// update
 	function update() {
-
+		star.update()
+		sound_control()
 	}
 	//loop
 	function loop() {
