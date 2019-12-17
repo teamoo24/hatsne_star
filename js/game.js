@@ -175,7 +175,6 @@ window.onload = function(){
 				
 				p.y += this.dy;
 
-				console.log(this.delay)
 				// if the pipes go beyond canvas, we delete them from canvas
 				if(p.y >= cvs.height - fg.h) {
 					this.position.shift();
@@ -183,7 +182,7 @@ window.onload = function(){
 					score.value +=1;
 					if(score.value%10 == 0) {
 						if(this.delay > 10) {
-							this.delay -=10;
+							this.delay -= 5;
 						}
 					}
 				}
@@ -227,6 +226,13 @@ window.onload = function(){
 			}
 			this.oldx =x
 			this.x = x
+
+			if( this.x < 0 ) {
+				this.x = 0
+			} else if( this.x > cvs.width){
+				this.x = cvs.width
+			}
+
 		},
 		update: function() {
 			if(state.current == state.getReady){
