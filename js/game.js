@@ -84,28 +84,33 @@ window.onload = function(){
 	}
 
 	const player = {
-		sX: 35,
-		sY: 10,
+		animation : [
+			{sX: 0, sY: 0}, //this.animation[0]
+			{sX: 0, sY: 77}, //this.animation[1]
+		],
+
 		x: 50,
 		y : 150,
-		w: 70,
-		h: 80,
+		w: 67,
+		h: 77,
 		oldx : 0,
 
+		frame: 0,
+
 		draw: function() {
+			let player = this.animation[this.frame];
 
 			ctx.save();
 			ctx.translate(this.x, fg.y);
-			ctx.drawImage(hatsne, this.sX, this.sY, this.w, this.h, - this.w/2, - this.h, this.w, this.h);
-		
+			ctx.drawImage(hatsne, player.sX, player.sY, this.w, this.h, - this.w/2, - this.h, this.w, this.h);
 			ctx.restore();
 		},
 		move: function(e) {
 			var x = e.x;
 			if(x > this.oldx) {
-				console.log("right")
+				this.frame = 0;
 			} else if(x < this.oldx) {
-				console.log("left")
+				this.frame = 1;
 			}
 			console.log(this.x)
 			this.oldx =x
