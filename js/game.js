@@ -41,10 +41,18 @@ window.onload = function(){
 	const star_sprite = new Image();
 	star_sprite.src = "./img/star.png"
 
-	//bgm_play
+	//Load Back ground image
+	const back_sprite = new Image();
+	back_sprite.src = "./img/back_ground.png"	
+
+	//Load bgm
 	const BGM = new Audio();
 	BGM.src = "./audio/bgm/bgm.mp3"
 	BGM.loop = true;
+
+	//Load SE
+	const SCORE_S = new Audio();
+	SCORE_S.src = "./audio/se/sfx_point.wav"
 
 	// GAME STATE
 	const state = {
@@ -61,6 +69,8 @@ window.onload = function(){
 				break;
 			case state.over:
 				state.current = state.getReady;
+				star.reset();
+				score.reset();
 				break;
 
 		}
@@ -80,6 +90,19 @@ window.onload = function(){
         };
     }
 
+	const bg = {
+		sX : 5,
+		sY : 5,
+		w : 275,
+		h : cvs.height,
+		x : 0,
+		y : 0 + 112,
+
+		draw :  function() {
+			ctx.drawImage(back_sprite, this.sX, this.sY, this.w, this.h, this.x, this.y, this.w, this.h);
+			ctx.drawImage(back_sprite, this.sX, this.sY, this.w, this.h, this.x + this.w, this.y, this.w, this.h);
+		}
+	}
 
 	const fg = {
 		sX : 276,
@@ -106,6 +129,7 @@ window.onload = function(){
 		w:24,
 		h:24,
 		dy:2,
+		delay:100,
 
 		draw: function(){
 
@@ -126,7 +150,7 @@ window.onload = function(){
 				return;
 			}
 
-			if(frames%100 == 0) {
+			if(frames%this.delay == 0) {
 				this.position.push({
 					x : Math.random()*(cvs.width - this.w),
 					y : 0
@@ -136,16 +160,13 @@ window.onload = function(){
 			for(let i = 0; i <this.position.length; i++) {
 				let p = this.position[i];
 
-				console.log("player.x < p.x : " + (player.x < p.x))
-				console.log("player.x + player.w > p.x : " + (player.x + player.w > p.x))
-
 				if(
 					// 左
 					player.x - player.w/2< p.x 
 					// 右
 					&& player.x + player.w/3 > p.x
 					// 上
-					&& cvs.height - fg.h > p.y 
+					&& cvs.height - fg.h - this.h/2 > p.y 
 					// 下
 					&& cvs.height - fg.h - player.h - this.h/2 < p.y ) {
 					state.current = state.over;
@@ -154,15 +175,25 @@ window.onload = function(){
 				
 				p.y += this.dy;
 
+				console.log(this.delay)
 				// if the pipes go beyond canvas, we delete them from canvas
 				if(p.y >= cvs.height - fg.h) {
 					this.position.shift();
+					SCORE_S.play()
 					score.value +=1;
+					if(score.value%10 == 0) {
+						if(this.delay > 10) {
+							this.delay -=10;
+						}
+					}
 				}
 			}
+		},
+
+		reset : function() {
+			this.position = [];
+			this.delay = 100;
 		}
-
-
 	}
 
 	const player = {
@@ -228,7 +259,10 @@ window.onload = function(){
 				ctx.fillText(this.best, 225, 228);
 				ctx.strokeText(this.best, 225, 228);
 			}
-		} 
+		},
+		reset : function(){
+        	this.value = 0;
+    	}
 	}
 
 	const getReady = {
@@ -277,9 +311,10 @@ window.onload = function(){
 
 	// draw
 	function draw() {
-		ctx.fillStyle = "#fff";
+		ctx.fillStyle = "#40a0d0";
 		ctx.fillRect(0,0, cvs.width, cvs.height)
 
+		bg.draw()
 		fg.draw()
 		player.draw()
 		star.draw()
