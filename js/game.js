@@ -34,19 +34,40 @@ window.onload = function(){
 	const hatsne = new Image();
 	hatsne.src = "./img/hatsne.png"
 
-	const player = {
-		sX: 35,
-		sY: 10,
-		w: 70,
-		h: 80,
-		x: 70,
-		y : cvs.height - 112,
-
-		draw: function() {
-			ctx.drawImage(hatsne, this.sX, this.sY, this.w, this.h, - this.w/2, - this.h/2, this.w, this.h);
-		}
-
+	// GAME STATE
+	const state = {
+		current : 0,
+		getReady : 0,
+		game : 1,
+		over : 2
 	}
+	// CONTROL THE GAME
+	document.addEventListener("click", function(evt){
+		switch(state.current) {
+			case state.getReady:
+				state.current = state.game;
+				break;
+			case state.over:
+				state.current = state.getReady;
+				break;
+
+		}
+	});
+	document.addEventListener("mousemove", function(evt){
+		if(state.current == state.game) {
+			var mousePos = getMousePosition(cvs, evt);
+			player.move(mousePos)
+		}
+	});
+
+	function getMousePosition(canvas, evt) {
+        var rect = canvas.getBoundingClientRect();
+        return {
+          x: evt.clientX - rect.left,
+          y: evt.clientY - rect.top
+        };
+    }
+
 
 	const fg = {
 		sX : 276,
@@ -62,13 +83,81 @@ window.onload = function(){
 		}
 	}
 
+	const player = {
+		sX: 35,
+		sY: 10,
+		x: 50,
+		y : 150,
+		w: 70,
+		h: 80,
+		oldx : 0,
+
+		draw: function() {
+
+			ctx.save();
+			ctx.translate(this.x, fg.y);
+			ctx.drawImage(hatsne, this.sX, this.sY, this.w, this.h, - this.w/2, - this.h, this.w, this.h);
+		
+			ctx.restore();
+		},
+		move: function(e) {
+			var x = e.x;
+			if(x > this.oldx) {
+				console.log("right")
+			} else if(x < this.oldx) {
+				console.log("left")
+			}
+			console.log(this.x)
+			this.oldx =x
+			this.x = x
+		},
+		update: function() {
+			if(state.current == state.getReady){
+				this.y = 150
+			} else {}
+		}
+
+	}
+
+	const getReady = {
+		sX : 0,
+		sY : 228,
+		w : 173,
+		h : 152,
+		x : cvs.width/2 - 173/2,
+		y : 80,
+
+		draw: function() {
+			if(state.current == state.getReady) {
+				ctx.drawImage(sprite, this.sX, this.sY, this.w, this.h, this.x, this.y, this.w, this.h);
+			}
+		}
+	}
+
+	const gameOver = {
+		sX : 175,
+		sY : 228,
+		w : 225,
+		h : 202,
+		x : cvs.width/2 - 225/2,
+		y : 90,
+
+		draw: function() {
+			if(state.current == state.over) {
+				ctx.drawImage(sprite, this.sX, this.sY, this.w, this.h, this.x, this.y, this.w, this.h);
+			}
+		}
+	}
+
 	// draw
 	function draw() {
-		ctx.fillStyle = "#70c5ce";
+		ctx.fillStyle = "#fff";
 		ctx.fillRect(0,0, cvs.width, cvs.height)
 
-		player.draw()
 		fg.draw()
+		player.draw()
+		getReady.draw()
+		gameOver.draw()
 	}
 	// update
 	function update() {
